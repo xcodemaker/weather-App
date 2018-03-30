@@ -1,5 +1,6 @@
-const request=require('request'),
-yargs=require('yargs');
+const yargs=require('yargs'),
+geocode=require('./geocode/geocode'),
+weather=require('./weather/weather');
 
 const argv=yargs
 .option({
@@ -14,13 +15,30 @@ const argv=yargs
 .alias('help','h')
 .argv;
 
-console.log(argv);
 
-request({
-    url:'https://maps.googleapis.com/maps/api/geocode/json?address=1301%20lombard%20street%20philadelphia',
-    json:true
-},(error,response,body)=>{
-    console.log(`Address: ${body.results[0].formatted_address}`);
-    console.log(`Latitude: ${body.results[0].geometry.location.lat}`);
-    console.log(`Longitude: ${body.results[0].geometry.location.lng}`);
-});
+// geocode.getLocation(argv.address,(errorMessage,  results)=>{
+//     if(errorMessage){
+//         console.log(errorMessage);
+//     }else{
+//         console.log(results.address);
+//         weather.getWeather(results.latitude,results.longtitude,(errorMessage, weatherResult)=>{
+//             if(errorMessage){
+//                 console.log(errorMessage);
+//             }else{
+//                 console.log(`It's currently ${weatherResult.temperature}. It feels like ${weatherResult.apparentTemperature}.`);
+//             }
+//         });
+//     }
+// });
+
+geocode.getLocation(argv.address).then((location)=>{
+    console.log(JSON.stringify(location,undefined,2));
+    return weather.getWeather(location.latitude,location.longtitude);
+}).then((res)=>{
+    console.log(JSON.stringify(res,undefined,2));
+}).catch((errorMessage)=>{
+    console.log(errorMessage);
+})
+
+
+
